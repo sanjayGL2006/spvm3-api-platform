@@ -4,3 +4,11 @@ __pycache__/
 .pytest_cache/
 venv/
 .venv/
+
+# Ignore large models and datasets
+*.pkl
+*.pt
+*.bin
+*.safetensors
+dataset/
+archive (1)/

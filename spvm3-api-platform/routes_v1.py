@@ -1,5 +1,9 @@
 """The public API that API keys unlock."""
 from flask import Blueprint, g, request
+import os
+import sys
+import subprocess
+import pandas as pd
 
 from core import api_key_required, db, fail, ok
 from knowledge import build_answer, search_knowledge
@@ -74,3 +78,29 @@ def ask():
     matches = search_knowledge(question, None, 4)
     answer, source = build_answer(question, matches)
     return ok({"answer": answer, "source": source, "sources": [{"id": m["id"], "title": m["title"]} for m in matches]})
+
+
+@bp.post("/auto_learn")
+@api_key_required("ask")
+def auto_learn():
+    data = request.get_json(silent=True) or {}
+    text = str(data.get("text") or "").strip()
+    label = str(data.get("label") or "").strip()
+    
+    if not text or not label:
+        return fail("INVALID_INPUT", "'text' and 'label' are required.", 400)
+        
+    dataset_dir = os.path.join(os.path.dirname(__file__), "dataset", "archive")
+    os.makedirs(dataset_dir, exist_ok=True)
+    
+    csv_file = os.path.join(dataset_dir, "auto_learned_data.csv")
+    
+    df = pd.DataFrame([{"text": text, "label": label}])
+    # Append to CSV, if file doesn't exist write header
+    df.to_csv(csv_file, mode='a', header=not os.path.exists(csv_file), index=False)
+    
+    # Trigger training script asynchronously
+    script_path = os.path.join(os.path.dirname(__file__), "train_model.py")
+    subprocess.Popen([sys.executable, script_path])
+    
+    return ok({"message": "Data saved and model retraining started in background."})

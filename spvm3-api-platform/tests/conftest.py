@@ -2,6 +2,7 @@ import os
 import sys
 
 import psycopg2
+# pyrefly: ignore [missing-import]
 import pytest
 
 TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "postgresql://t:t@127.0.0.1:5433/spvm3_test")
