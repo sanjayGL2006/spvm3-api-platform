@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: spvm3_platform
+      MYSQL_USER: spvm3
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: mysql://spvm3:${DB_PASSWORD}@db:3306/spvm3_platform
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"   # put nginx with HTTPS in front of this
+
+volumes:
+  mysqldata:

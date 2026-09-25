@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPVM3 API - knowledge API with your own API keys</title>
+  <meta name="description"
+    content="Create an account, generate your own API key, and query a programming knowledge API.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <header class="top">
+    <a class="brand" href="/">SPVM3 <span>API</span></a>
+    <a class="btn" href="/app">Log in / Register</a>
+  </header>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Programming knowledge, one API key away.</h1>
+      <p>Register, create your own API key, and search or ask questions across programming languages, Git, GitHub and
+        more. Every key has scopes, an optional expiry, its own rate limit, and can be rotated or revoked any time.</p>
+      <div class="row"><a class="btn" href="/app">Get your API key</a></div>
+    </section>
+
+    <section class="grid3">
+      <div class="card">
+        <h3>1. Register</h3>
+        <p class="muted">Create a free account with your email and a strong password.</p>
+      </div>
+      <div class="card">
+        <h3>2. Create a key</h3>
+        <p class="muted">Choose scopes and an expiry. The full key is shown only once.</p>
+      </div>
+      <div class="card">
+        <h3>3. Call the API</h3>
+        <p class="muted">Send the key in the <code>X-API-Key</code> header. See usage per key in your dashboard.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Quick start</h2>
+      <p class="muted">Search the knowledge base (needs the <code>knowledge:read</code> scope):</p>
+      <pre><code>curl "<span data-host>https://YOUR-HOST</span>/v1/knowledge/search?q=python%20list" \
+  -H "X-API-Key: spvm_live_..."</code></pre>
+      <p class="muted">Ask a question (needs the <code>ask</code> scope):</p>
+      <pre><code>curl -X POST "<span data-host>https://YOUR-HOST</span>/v1/ask" \
+  -H "X-API-Key: spvm_live_..." -H "Content-Type: application/json" \
+  -d '{"question": "What is git rebase?"}'</code></pre>
+      <p class="muted">Python:</p>
+      <pre><code>import requests
+r = requests.get("<span data-host>https://YOUR-HOST</span>/v1/knowledge/search",
+                 params={"q": "python list"}, headers={"X-API-Key": "spvm_live_..."})
+print(r.json()["data"]["results"])</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>Endpoints</h2>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Scope</th>
+              <th>What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>GET /v1/whoami</code></td>
+              <td>any</td>
+              <td>Shows your key's prefix, scopes, expiry and rate limit</td>
+            </tr>
+            <tr>
+              <td><code>GET /v1/categories</code></td>
+              <td>knowledge:read</td>
+              <td>Lists knowledge categories</td>
+            </tr>
+            <tr>
+              <td><code>GET /v1/knowledge/search?q=&amp;category=&amp;limit=</code></td>
+              <td>knowledge:read</td>
+              <td>Searches entries</td>
+            </tr>
+            <tr>
+              <td><code>GET /v1/knowledge/{id}</code></td>
+              <td>knowledge:read</td>
+              <td>Reads one entry</td>
+            </tr>
+            <tr>
+              <td><code>POST /v1/ask</code></td>
+              <td>ask</td>
+              <td>Answers a question from the knowledge base</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Responses and errors</h3>
+      <pre><code>{"success": true,  "data": {...}, "request_id": "req_1a2b3c4d5e6f7a8b"}
+{"success": false, "error": {"code": "INVALID_API_KEY", "message": "..."}, "request_id": "req_..."}</code></pre>
+      <p class="muted">Status codes: <code>401</code> invalid, expired or revoked key (all look the same on purpose),
+        <code>403</code> missing scope, <code>429</code> rate limit reached (see the <code>Retry-After</code> header).
+        Every response carries <code>X-Request-ID</code>; quote it when you report a problem.</p>
+    </section>
+
+    <section class="card">
+      <h2>How your key is protected</h2>
+      <ul>
+        <li>Only a keyed hash of your key is stored, never the key itself. If our database leaked, the keys could not be
+          recovered.</li>
+        <li>Keys can expire, be rotated with a grace period, or be revoked instantly.</li>
+        <li>Keep keys on your server. Anything placed in browser code can be read by visitors.</li>
+      </ul>
+    </section>
+  </main>
+  <footer>SPVM3 Tech Solution</footer>
+  <script src="landing.js"></script>
+</body>
+
+</html>
