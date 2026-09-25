@@ -31,7 +31,8 @@ def _ask_llm(question, matches):
     context = "\n\n".join(f"[{m['title']}]\n{m['content']}" for m in matches)
     prompt = (
         "You are the SPVM3 knowledge assistant. Answer using ONLY the context below. "
-        "If the context does not contain the answer, say you do not have that information yet. "
+        "Do not invent, guess, or provide information outside of this context. "
+        "If the context does not contain the answer, you must say: 'I don't have that in my knowledge base yet, so I don't want to guess and get it wrong.' "
         f"Keep the answer short and clear.\n\nContext:\n{context}\n\nQuestion: {question}\nAnswer:"
     )
     r = requests.post(f"{OLLAMA_URL}/api/generate",
@@ -42,7 +43,7 @@ def _ask_llm(question, matches):
 
 def build_answer(question, matches):
     if not matches:
-        return "I don't have information about that yet.", "none"
+        return "I don't have that in my knowledge base yet, so I don't want to guess and get it wrong.", "none"
     if OLLAMA_URL:
         try:
             return _ask_llm(question, matches), "llm"
